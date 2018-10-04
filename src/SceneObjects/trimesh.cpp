@@ -70,6 +70,7 @@ const char* Trimesh::doubleCheck()
 
 bool Trimesh::intersectLocal(ray& r, isect& i) const
 {
+	//std::cout << "calling this one" << endl;
 	bool have_one = false;
 	for (auto face : faces) {
 		isect cur;
@@ -99,7 +100,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	//
 	// FIXME: Add ray-trimesh intersection
 	//std::cout << endl;
-	//std::cout << "starting intersection" << endl;
+	//std::cout << "starting intersection in trimesh" << endl;
 	glm::dvec3 a = parent->vertices[ids[0]];
 	glm::dvec3 b = parent->vertices[ids[1]];
 	glm::dvec3 c = parent->vertices[ids[2]];

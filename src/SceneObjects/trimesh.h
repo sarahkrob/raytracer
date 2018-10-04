@@ -56,6 +56,8 @@ public:
 
 	bool hasBoundingBoxCapability() const { return true; }
 
+	Faces getFaces() { return faces; }
+
 	BoundingBox ComputeLocalBoundingBox()
 	{
 		BoundingBox localbounds;

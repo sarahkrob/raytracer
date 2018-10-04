@@ -220,6 +220,9 @@ bool RayTracer::loadScene(const char* fn)
 	if (!sceneLoaded())
 		return false;
 
+	if (traceUI->kdSwitch())
+		scene->setupKdTree();
+
 	return true;
 }
 
@@ -282,6 +285,11 @@ void RayTracer::traceImage(int w, int h)
 	workerthreads[i] = std::thread(&RayTracer::threadImageTrace, this, w, ysplit * i, h);
 	waitRender();
 	delete [] workerthreads;
+	/*for (int i = 0; i < w; ++i) {
+		for (int j = 0; j < h; ++j) {
+			tracePixel(j, i);
+		}
+	}*/
 }
 
 void RayTracer::threadImageTrace(int w, int hstart, int hstop) {
@@ -299,7 +307,40 @@ int RayTracer::aaImage()
 	//
 	// TIP: samples and aaThresh have been synchronized with TraceUI by
 	//      RayTracer::traceSetup() function
-	return 0;
+
+	//each pixel should have samples number of smaller pixels, so sqrt on each side
+	std::cout << "antialiasing" << endl;
+	double pixel_x = (1.0 / (double)buffer_width) / samples;
+	double pixel_y = (1.0 / (double)buffer_height) / samples;
+
+	//go thru every pixel
+	for (int i = 0; i < buffer_width; ++i) {
+		for (int j = 0; j < buffer_height; ++j) {
+
+			glm::dvec3 col(0,0,0);
+
+			double x = double(i)/double(buffer_width);
+			double y = double(j)/double(buffer_height); 
+
+			unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
+			//in each pixel, trace every smaller pixel and get color
+			for (int sample_c = 0; sample_c < samples; ++sample_c) {
+				for (int sample_r = 0; sample_r < samples; ++sample_r) {
+					//move in by current x and then check within pixel
+					double test_x = x + double(pixel_x * sample_r);
+					double test_y = y + double(pixel_y * sample_c);
+					col += trace(test_x, test_y);
+					//std::cout << "new color is " << col[0] << ", " << col[1] << ", " << col[2] << endl;
+ 				} 
+			}
+
+			col /= (samples * samples);
+			//std::cout << "new color is " << col[0] << ", " << col[1] << ", " << col[2] << endl;
+			pixel[0] = (int)( 255.0 * col[0]);
+			pixel[1] = (int)( 255.0 * col[1]);
+			pixel[2] = (int)( 255.0 * col[2]);
+		}
+	}
 }
 
 bool RayTracer::checkRender()
@@ -315,6 +356,7 @@ bool RayTracer::checkRender()
 			return false;
 		}
 	}
+	//std::cout << "thread ending" << endl;
 	return true;
 }
 
@@ -326,12 +368,17 @@ void RayTracer::waitRender()
 	//        traceImage implementation.
 	//
 	// TIPS: Join all worker threads here.
-	while (1) {
+	while (!stopTrace) {
 		if (checkRender()) {
 			for (int i = 0; i < threads; ++i) {
 				workerthreads[i].join();
 			}
 			break;
+		}
+	}
+	if (stopTrace) {
+		for (int i = 0; i < threads; ++i) {
+			workerthreads[i].join();
 		}
 	}
 }

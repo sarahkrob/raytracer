@@ -19,6 +19,7 @@
 #include "camera.h"
 #include "material.h"
 #include "ray.h"
+#include "kdTree.h"
 
 #include <glm/geometric.hpp>
 #include <glm/mat3x3.hpp>
@@ -231,6 +232,7 @@ public:
 	void add(Light* light);
 
 	bool intersect(ray& r, isect& i) const;
+	void setupKdTree();
 
 	auto beginLights() const { return lights.begin(); }
 	auto endLights() const { return lights.end(); }
@@ -283,7 +285,7 @@ private:
 	// are exempt from this requirement.
 	BoundingBox sceneBounds;
 
-	KdTree<Geometry>* kdtree;
+	kdTree<Geometry*>* kdtree;
 
 public:
 	// This is used for debugging purposes only.

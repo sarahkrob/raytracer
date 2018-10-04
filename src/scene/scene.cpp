@@ -2,17 +2,20 @@
 
 #include "scene.h"
 #include "light.h"
-#include "kdTree.h"
 #include "../ui/TraceUI.h"
+#include "../SceneObjects/trimesh.h"
 #include <glm/gtx/extended_min_max.hpp>
 #include <iostream>
 #include <glm/gtx/io.hpp>
 
 using namespace std;
 
+extern TraceUI* traceUI;
+
 bool Geometry::intersect(ray& r, isect& i) const {
+	//std::cout << "starting intersect in Geometry" << endl;
 	double tmin, tmax;
-	if (hasBoundingBoxCapability() && !(bounds.intersect(r, tmin, tmax))) return false;
+	//if (hasBoundingBoxCapability() && !(bounds.intersect(r, tmin, tmax))) return false;
 	// Transform the ray into the object's local coordinate space
 	glm::dvec3 pos = transform->globalToLocalCoords(r.getPosition());
 	glm::dvec3 dir = transform->globalToLocalCoords(r.getPosition() + r.getDirection()) - pos;
@@ -26,6 +29,7 @@ bool Geometry::intersect(ray& r, isect& i) const {
 	bool rtrn = false;
 	if (intersectLocal(r, i))
 	{
+		//std::cout << "intersect local YES" << endl;
 		// Transform the intersection point & normal returned back into global space.
 		i.setN(transform->localToGlobalCoordsNormal(i.getN()));
 		i.setT(i.getT()/length);
@@ -115,12 +119,20 @@ bool Scene::intersect(ray& r, isect& i) const {
 	double tmin = 0.0;
 	double tmax = 0.0;
 	bool have_one = false;
-	for(const auto& obj : objects) {
-		isect cur;
-		if( obj->intersect(r, cur) ) {
-			if(!have_one || (cur.getT() < i.getT())) {
-				i = cur;
-				have_one = true;
+
+	if (kdtree != nullptr && traceUI->kdSwitch()) {
+		//std::cout << "checking intersect" << endl;
+		kdtree->root->findIntersection(r, i, tmin, tmax, have_one);
+		//std::cout << "finished checking intersect!" << endl;
+	}
+	else {
+		for(const auto& obj : objects) {
+			isect cur;
+			if( obj->intersect(r, cur) ) {
+				if(!have_one || (cur.getT() < i.getT())) {
+					i = cur;
+					have_one = true;
+				}
 			}
 		}
 	}
@@ -141,4 +153,23 @@ TextureMap* Scene::getTexture(string name) {
 	return itr->second.get();
 }
 
+void Scene::setupKdTree() {
+	std::vector<Geometry*> objs;
+	std::vector<std::unique_ptr<Geometry>>::const_iterator it;
+	for (it = beginObjects(); it != endObjects(); ++it) {
+		//check trimesh
+		//make into trimesh and check if null
+		Trimesh* tmesh = dynamic_cast<Trimesh*>(it->get());
+		if (tmesh != nullptr) {
+			for(int i = 0; i < tmesh->getFaces().size(); ++i) {
+				tmesh->getFaces()[i]->ComputeBoundingBox();
+				objs.push_back(tmesh->getFaces()[i]);
+			}
+		}
+		else {
+			objs.push_back(it->get());
+		}
+	}
+	kdtree = new kdTree<Geometry*>(objs, sceneBounds, traceUI->getLeafSize());
+}
 
