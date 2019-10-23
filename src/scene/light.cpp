@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "light.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/io.hpp>
 

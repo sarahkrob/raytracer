@@ -2,6 +2,7 @@
 
 #include "Sphere.h"
 #include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
 using namespace std;

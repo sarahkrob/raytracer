@@ -10,6 +10,7 @@
 #include "../scene/scene.h"
 #include "../scene/material.h"
 #include "../ui/TraceUI.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>

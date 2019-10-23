@@ -13,6 +13,7 @@
 #include "ui/TraceUI.h"
 #include <cmath>
 #include <algorithm>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/io.hpp>
 #include <string.h> // for memset

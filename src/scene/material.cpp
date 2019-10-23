@@ -3,7 +3,7 @@
 #include "light.h"
 #include "ray.h"
 extern TraceUI* traceUI;
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 #include <iostream>
 #include "../fileio/images.h"

@@ -4,6 +4,7 @@
 #include "light.h"
 #include "../ui/TraceUI.h"
 #include "../SceneObjects/trimesh.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/extended_min_max.hpp>
 #include <iostream>
 #include <glm/gtx/io.hpp>
